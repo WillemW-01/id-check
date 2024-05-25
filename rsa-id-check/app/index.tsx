@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ScanningResult, useCameraPermissions } from "expo-camera";
+import { CameraView, ScanningResult, useCameraPermissions } from "expo-camera";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 import { ThemedView } from "@/components/ThemedView";
 import Button from "@/components/Button";
 
 import { useIdHandler } from "@/hooks/useIdHandler";
+import { useOCR } from "@/hooks/useOCR";
 
 import { Scanner } from "./Scanner";
 import CameraSuspense from "@/components/CameraSuspense";
@@ -27,6 +28,9 @@ export default function Index() {
   const [isValid, setIsValid] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
 
+  const cameraRef = useRef<CameraView | null>(null);
+
+  const ocr = useOCR();
   const idHandler = useIdHandler();
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -36,9 +40,30 @@ export default function Index() {
     setHasChecked(true);
   }
 
-  const launchScanner = () => {
+  const launchScanner = async () => {
     setId("");
-    Scanner().getCode(handleScanResult);
+    if (cameraRef && cameraRef.current) {
+      try {
+        const image = await cameraRef.current.takePictureAsync({
+          base64: true,
+          quality: 0.5,
+        });
+        // console.log(image.base64);
+        if (image) {
+          const result = await ocr.getText(
+            `data:image/jpeg;base64,${image.base64}`
+          );
+          console.log(result);
+          if (result) {
+            setId(result);
+            setHasChecked(true);
+          }
+        }
+      } catch (err) {
+        console.log("Caught error in launchscanner: ", err);
+      }
+    }
+    // Scanner().getCode(handleScanResult);
   };
 
   const handlePress = () => {
@@ -124,6 +149,18 @@ export default function Index() {
                 <Text style={{ fontSize: 35 }}>{capitalize(data.sex)}</Text>
                 {!data.isForeign && <Text>Not South African</Text>}
               </View>
+            </View>
+          )}
+          {!hasChecked && (
+            <View style={{ flex: 1, width: "100%" }}>
+              <Text>Camera should come here:</Text>
+
+              <CameraView
+                style={{ flex: 1 }}
+                facing="back"
+                ref={cameraRef}
+                flash="on"
+              />
             </View>
           )}
           <Button

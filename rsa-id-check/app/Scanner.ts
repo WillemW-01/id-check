@@ -1,7 +1,4 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { useEffect, useRef, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { router } from "expo-router";
+import { CameraView } from "expo-camera";
 
 export function Scanner() {
   async function getCode(listeningFunction: Function) {
