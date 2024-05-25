@@ -1,5 +1,5 @@
 import fs from "fs";
-import axios from "axios";
+// import axios from "axios";
 import FormData from "form-data";
 // prettier-ignore
 type OcrSpaceLanguages =
@@ -106,19 +106,19 @@ export async function ocrSpace(
     formData.append("scale", String(scale || "false"));
     formData.append("isTable", String(isTable || "false"));
     formData.append("OCREngine", String(OCREngine || "1"));
-    const request = {
+
+    const url = String(ocrUrl || "https://api.ocr.space/parse/image");
+    const requestOptions: RequestInit = {
       method: "POST",
-      url: String(ocrUrl || "https://api.ocr.space/parse/image"),
       headers: {
         apikey: String(apiKey || "helloworld"),
-        "Content-Type": "multipart/form-data",
       },
-      data: formData,
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
+      body: formData as unknown as BodyInit,
     };
-    const { data } = await axios(request);
-    return data;
+
+    const response = await fetch(url, requestOptions);
+    const data = await response.json();
+    return data as OcrSpaceResponse;
   } catch (error) {
     console.error(error);
   }
