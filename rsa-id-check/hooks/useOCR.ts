@@ -1,4 +1,3 @@
-// const testImage =
 import { ocrSpace } from "@/custom-code/ocrSpace";
 
 export function useOCR() {
@@ -7,7 +6,7 @@ export function useOCR() {
       if (image) {
         console.log(image.slice(0, 100));
         const response = await ocrSpace(image, {
-          apiKey: "K88080175888957",
+          apiKey: process.env.EXPO_PUBLIC_OCR_KEY,
         });
         console.log(response);
         if (response) {

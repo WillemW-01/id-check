@@ -11,7 +11,7 @@ export function ThemedText({
   type = "default",
   ...rest
 }: ThemedTextProps) {
-  const color = useColor("text");
+  const color = useColor(type === "button" ? "textButton" : "text");
 
   return (
     <Text
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   subtitle: {
-    fontSize: 25,
+    fontSize: 30,
     // fontWeight: "bold",
   },
   button: {

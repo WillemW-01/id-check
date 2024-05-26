@@ -1,5 +1,12 @@
 import { useRef, useState } from "react";
-import { StyleSheet, TextInput, View, useColorScheme } from "react-native";
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  useColorScheme,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -13,6 +20,7 @@ import Button from "@/components/Button";
 import { useIdHandler } from "@/hooks/useIdHandler";
 import { useOCR } from "@/hooks/useOCR";
 import { Colors } from "@/constants/Colors";
+import Spinner from "@/components/Spinner";
 
 const startData = {
   age: 0,
@@ -28,6 +36,8 @@ export default function Index() {
   const [data, setData] = useState(startData);
   const [isValid, setIsValid] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const cameraRef = useRef<CameraView | null>(null);
 
@@ -41,6 +51,10 @@ export default function Index() {
     quality: 0.5,
   };
 
+  const toggleShowCamera = () => {
+    setShowCamera((prev) => !prev);
+  };
+
   const takePicture = async (ref: any): Promise<string | null> => {
     const image = await ref.current.takePictureAsync(cameraOptions);
     return image ? `data:image/jpeg;base64,${image.base64}` : null;
@@ -50,13 +64,14 @@ export default function Index() {
     if (!imageString) {
       return;
     }
-
+    setLoading(true);
     const result = await ocr.getText(imageString);
     console.log(result);
     if (result) {
       setId(result);
       validateId();
     }
+    setLoading(false);
   };
 
   const launchScanner = async () => {
@@ -109,7 +124,7 @@ export default function Index() {
         backgroundColor: Colors[theme]["background"],
       }}
     >
-      <StatusBar style="light" />
+      <StatusBar style="auto" />
       {!permission.granted ? (
         <CameraSuspense requestPermission={handlePermission} />
       ) : (
@@ -117,9 +132,22 @@ export default function Index() {
           <ThemedText type="title">RSA ID CHECKER</ThemedText>
 
           <ThemedView style={styles.resultContainer}>
-            <ThemedText type="subtitle">
-              {hasChecked ? "Result" : "Preview"}
-            </ThemedText>
+            <View style={styles.headerContainer}>
+              <ThemedText type="subtitle">
+                {hasChecked ? "Result" : loading ? "Loading" : "Preview"}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={toggleShowCamera}
+                style={[
+                  styles.cameraToggle,
+                  { backgroundColor: Colors[theme]["brand"] },
+                ]}
+              >
+                <Text style={{ color: "white" }}>
+                  {showCamera ? "Hide" : "Show"} Camera
+                </Text>
+              </TouchableOpacity>
+            </View>
             {hasChecked ? (
               <View style={styles.informationContainer}>
                 {isValid ? (
@@ -135,20 +163,26 @@ export default function Index() {
                     color={Colors[theme]["fail"]}
                   />
                 )}
-                <ThemedText type="button">Age {data.age}</ThemedText>
-                <ThemedText type="button">{capitalize(data.sex)}</ThemedText>
+                <ThemedText type="subtitle">Age {data.age}</ThemedText>
+                <ThemedText type="subtitle">{capitalize(data.sex)}</ThemedText>
                 {!data.isForeign && (
                   <ThemedText type="button">Not South African</ThemedText>
                 )}
               </View>
             ) : (
-              <ThemedView color="text" style={styles.cameraContainer}>
-                <CameraView
-                  style={{ flex: 1, borderRadius: 12 }}
-                  facing="back"
-                  ref={cameraRef}
-                  flash="auto"
-                />
+              <ThemedView color="background" style={styles.cameraContainer}>
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  showCamera && (
+                    <CameraView
+                      style={{ flex: 1, borderRadius: 12 }}
+                      facing="back"
+                      ref={cameraRef}
+                      flash="auto"
+                    />
+                  )
+                )}
               </ThemedView>
             )}
           </ThemedView>
@@ -187,7 +221,18 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 10,
   },
-  heading: { fontSize: 35 },
+  headerContainer: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "center",
+  },
+  cameraToggle: {
+    position: "absolute",
+    right: 0,
+
+    padding: 10,
+    borderRadius: 10,
+  },
   resultContainer: { width: "100%", alignItems: "center", gap: 10 },
   informationContainer: {
     gap: 30,

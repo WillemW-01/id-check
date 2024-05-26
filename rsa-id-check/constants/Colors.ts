@@ -1,9 +1,10 @@
 export const Colors = {
   light: {
     none: null,
-    text: "#E8E8E8",
-    faded: "#C0C0C0",
-    background: "#1C3245",
+    text: "#333333",
+    textButton: "#E8E8E8",
+    faded: "#A0A0A0",
+    background: "#F5F5F5",
     brand: "#3E5B75",
     brandMid: "#708CA4",
     brandLight: "3E5B75",
@@ -13,6 +14,7 @@ export const Colors = {
   dark: {
     none: null,
     text: "#E8E8E8",
+    textButton: "#E8E8E8",
     faded: "#C0C0C0",
     background: "#1C3245",
     brand: "#3E5B75",

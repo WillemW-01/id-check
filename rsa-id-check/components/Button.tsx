@@ -27,9 +27,6 @@ export default function Button({
   style,
 }: ButtonProps) {
   const backgroundColor: ColorValue = color ? useColor(color) : "transparent";
-  const textColor = useColor("text");
-  console.log("Calculated ", backgroundColor);
-
   return (
     <TouchableOpacity
       style={[
