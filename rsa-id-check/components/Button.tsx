@@ -4,12 +4,17 @@ import {
   Text,
   TouchableOpacity,
   ViewStyle,
+  ColorValue,
 } from "react-native";
+
+import { useColor } from "@/hooks/useColor";
+import { Colors } from "@/constants/Colors";
+import { ThemedText } from "./ThemedText";
 
 type ButtonProps = {
   handlePress: () => void;
   label: string;
-  color: string;
+  color: keyof typeof Colors.light | keyof typeof Colors.dark;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
@@ -21,17 +26,21 @@ export default function Button({
   disabled,
   style,
 }: ButtonProps) {
+  const backgroundColor: ColorValue = color ? useColor(color) : "transparent";
+  const textColor = useColor("text");
+  console.log("Calculated ", backgroundColor);
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        { backgroundColor: color, opacity: disabled ? 0.7 : 1 },
+        { backgroundColor: backgroundColor, opacity: disabled ? 0.7 : 1 },
         style,
       ]}
       onPress={handlePress}
       disabled={disabled}
     >
-      <Text style={{ color: "white", fontSize: 25 }}>{label}</Text>
+      <ThemedText type="button">{label}</ThemedText>
     </TouchableOpacity>
   );
 }

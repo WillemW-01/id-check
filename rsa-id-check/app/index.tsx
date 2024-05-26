@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useColorScheme,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, ScanningResult, useCameraPermissions } from "expo-camera";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -12,6 +18,10 @@ import { useOCR } from "@/hooks/useOCR";
 
 import { Scanner } from "./Scanner";
 import CameraSuspense from "@/components/CameraSuspense";
+import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/Colors";
+import { useTheme } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 
 const startData = {
   age: 0,
@@ -30,6 +40,7 @@ export default function Index() {
 
   const cameraRef = useRef<CameraView | null>(null);
 
+  const theme = useColorScheme() ?? "light";
   const ocr = useOCR();
   const idHandler = useIdHandler();
   const [permission, requestPermission] = useCameraPermissions();
@@ -102,73 +113,89 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        ...styles.safeContainer,
+        backgroundColor: Colors[theme]["background"],
+      }}
+    >
+      <StatusBar style="light" />
       {!permission.granted ? (
         <CameraSuspense requestPermission={handlePermission} />
       ) : (
-        <ThemedView style={styles.container}>
-          <Text style={{ fontSize: 40, fontWeight: "bold" }}>RSA ID CHECK</Text>
-          <View style={styles.inputContainer}>
-            <Button
-              handlePress={launchScanner}
-              label="Scan id card"
-              color="black"
-            />
+        <ThemedView color="background" style={styles.container}>
+          <ThemedText type="title">RSA ID CHECKER</ThemedText>
+
+          <ThemedView style={styles.resultContainer}>
+            <ThemedText type="subtitle">
+              {hasChecked ? "Result" : "Preview"}
+            </ThemedText>
+            {hasChecked ? (
+              <View
+                style={{
+                  gap: 30,
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                  aspectRatio: 1,
+                }}
+              >
+                {isValid ? (
+                  <AntDesign
+                    name="checkcircleo"
+                    size={150}
+                    color={Colors[theme]["success"]}
+                  />
+                ) : (
+                  <AntDesign
+                    name="closecircleo"
+                    size={150}
+                    color={Colors[theme]["fail"]}
+                  />
+                )}
+                <ThemedText type="button">Age {data.age}</ThemedText>
+                <ThemedText type="button">{capitalize(data.sex)}</ThemedText>
+                {!data.isForeign && <Text>Not South African</Text>}
+              </View>
+            ) : (
+              <ThemedView color="text" style={styles.cameraContainer}>
+                <CameraView
+                  style={{ width: "100%", aspectRatio: 1 }}
+                  facing="back"
+                  ref={cameraRef}
+                  flash="auto"
+                />
+              </ThemedView>
+            )}
+          </ThemedView>
+          <ThemedView color="brandMid" style={styles.buttonContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: Colors[theme]["text"] }]}
               placeholder="enter id"
-              placeholderTextColor="white"
+              placeholderTextColor={Colors[theme]["faded"]}
               value={id}
               onChangeText={setId}
               onSubmitEditing={handlePress}
             />
             <Button
-              handlePress={handlePress}
-              label="Press to validate"
-              color="black"
-              disabled={hasChecked}
+              handlePress={launchScanner}
+              label="Scan ID card"
+              color="brand"
             />
-          </View>
+            <Button
+              handlePress={hasChecked ? clearState : handlePress}
+              label={hasChecked ? "Clear" : "Validate"}
+              color="brand"
+            />
+          </ThemedView>
 
-          {hasChecked && (
-            <View style={{ gap: 20 }}>
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                {isValid ? (
-                  <AntDesign name="checkcircleo" size={120} color="green" />
-                ) : (
-                  <AntDesign name="closecircleo" size={120} color="red" />
-                )}
-              </View>
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  style={{ fontSize: 35, fontWeight: "bold", marginBottom: 15 }}
-                >
-                  More information:
-                </Text>
-                <Text style={{ fontSize: 35 }}>Age {data.age}</Text>
-                <Text style={{ fontSize: 35 }}>{capitalize(data.sex)}</Text>
-                {!data.isForeign && <Text>Not South African</Text>}
-              </View>
-            </View>
-          )}
-          {!hasChecked && (
-            <View style={{ flex: 1, width: "100%" }}>
-              <Text>Camera should come here:</Text>
-
-              <CameraView
-                style={{ flex: 1 }}
-                facing="back"
-                ref={cameraRef}
-                flash="on"
-              />
-            </View>
-          )}
-          <Button
+          {/* <Button
             handlePress={clearState}
             label="Clear"
             color="black"
             style={{ position: "absolute", bottom: 0, height: 50 }}
-          />
+          /> */}
         </ThemedView>
       )}
     </SafeAreaView>
@@ -176,25 +203,30 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  safeContainer: { flex: 1, backgroundColor: "#fff" },
   container: {
     flex: 1,
     alignItems: "center",
-    gap: 20,
-    padding: 10,
+    justifyContent: "space-between",
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
   heading: { fontSize: 35 },
-  inputContainer: {
+  resultContainer: { width: "100%", alignItems: "center", gap: 10 },
+  cameraContainer: { width: "100%", aspectRatio: 1, borderRadius: 12 },
+  buttonContainer: {
     width: "100%",
-    gap: 20,
+    gap: 15,
     alignItems: "center",
+    borderRadius: 12,
+    padding: 5,
   },
   input: {
     height: 50,
     borderRadius: 10,
-    backgroundColor: "#CC5500",
     width: "100%",
     textAlign: "center",
-    color: "white",
-    fontSize: 20,
+    color: "",
+    fontSize: 30,
   },
 });

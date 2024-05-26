@@ -15,6 +15,7 @@ export function useIdHandler() {
     });
 
   const isValidId = (id: String) => {
+    console.log(id);
     const checkDigit = Number(id.slice(12));
     const payload = id.slice(0, 12);
     const digits = stringToDigits(payload);
