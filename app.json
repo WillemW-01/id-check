@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "rsa-id-check",
-    "slug": "rsa-id-check",
+    "name": "id-check",
+    "slug": "id-check",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "id-check",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
