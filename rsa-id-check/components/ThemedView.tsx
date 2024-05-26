@@ -11,7 +11,5 @@ export type ThemedViewProps = ViewProps & {
 
 export function ThemedView({ color, style, ...otherProps }: ThemedViewProps) {
   const backgroundColor: ColorValue = color ? useColor(color) : "transparent";
-  console.log(`Returning background color: ${backgroundColor.toString()}`);
-
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }

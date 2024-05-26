@@ -1,27 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  useColorScheme,
-} from "react-native";
+import { useRef, useState } from "react";
+import { StyleSheet, TextInput, View, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CameraView, ScanningResult, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { StatusBar } from "expo-status-bar";
 
+import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import CameraSuspense from "@/components/CameraSuspense";
 import Button from "@/components/Button";
 
 import { useIdHandler } from "@/hooks/useIdHandler";
 import { useOCR } from "@/hooks/useOCR";
-
-import { Scanner } from "./Scanner";
-import CameraSuspense from "@/components/CameraSuspense";
-import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { useTheme } from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
 
 const startData = {
   age: 0,
@@ -45,39 +36,44 @@ export default function Index() {
   const idHandler = useIdHandler();
   const [permission, requestPermission] = useCameraPermissions();
 
-  function handleScanResult(result: ScanningResult) {
-    console.log(`Got result with data: ${result.data}`);
-    setId(result.data);
-    setHasChecked(true);
-  }
-
-  const launchScanner = async () => {
-    setId("");
-    if (cameraRef && cameraRef.current) {
-      try {
-        const image = await cameraRef.current.takePictureAsync({
-          base64: true,
-          quality: 0.5,
-        });
-        // console.log(image.base64);
-        if (image) {
-          const result = await ocr.getText(
-            `data:image/jpeg;base64,${image.base64}`
-          );
-          console.log(result);
-          if (result) {
-            setId(result);
-            setHasChecked(true);
-          }
-        }
-      } catch (err) {
-        console.log("Caught error in launchscanner: ", err);
-      }
-    }
-    // Scanner().getCode(handleScanResult);
+  const cameraOptions = {
+    base64: true,
+    quality: 0.5,
   };
 
-  const handlePress = () => {
+  const takePicture = async (ref: any): Promise<string | null> => {
+    const image = await ref.current.takePictureAsync(cameraOptions);
+    return image ? `data:image/jpeg;base64,${image.base64}` : null;
+  };
+
+  const extractText = async (imageString: string | null) => {
+    if (!imageString) {
+      return;
+    }
+
+    const result = await ocr.getText(imageString);
+    console.log(result);
+    if (result) {
+      setId(result);
+      validateId();
+    }
+  };
+
+  const launchScanner = async () => {
+    if (!cameraRef.current) {
+      return;
+    }
+
+    try {
+      setId("");
+      const base64 = await takePicture(cameraRef);
+      await extractText(base64);
+    } catch (err) {
+      console.log("Caught error in launchscanner: ", err);
+    }
+  };
+
+  const validateId = () => {
     if (id.length == 13) {
       setHasChecked(false);
       const valid = idHandler.isValidId(id);
@@ -100,12 +96,6 @@ export default function Index() {
     console.log("Requesting permission");
     requestPermission();
   };
-
-  useEffect(() => {
-    if (hasChecked) {
-      handlePress();
-    }
-  }, [hasChecked]);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -131,16 +121,7 @@ export default function Index() {
               {hasChecked ? "Result" : "Preview"}
             </ThemedText>
             {hasChecked ? (
-              <View
-                style={{
-                  gap: 30,
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  aspectRatio: 1,
-                }}
-              >
+              <View style={styles.informationContainer}>
                 {isValid ? (
                   <AntDesign
                     name="checkcircleo"
@@ -156,12 +137,14 @@ export default function Index() {
                 )}
                 <ThemedText type="button">Age {data.age}</ThemedText>
                 <ThemedText type="button">{capitalize(data.sex)}</ThemedText>
-                {!data.isForeign && <Text>Not South African</Text>}
+                {!data.isForeign && (
+                  <ThemedText type="button">Not South African</ThemedText>
+                )}
               </View>
             ) : (
               <ThemedView color="text" style={styles.cameraContainer}>
                 <CameraView
-                  style={{ width: "100%", aspectRatio: 1 }}
+                  style={{ flex: 1, borderRadius: 12 }}
                   facing="back"
                   ref={cameraRef}
                   flash="auto"
@@ -176,7 +159,7 @@ export default function Index() {
               placeholderTextColor={Colors[theme]["faded"]}
               value={id}
               onChangeText={setId}
-              onSubmitEditing={handlePress}
+              onSubmitEditing={validateId}
             />
             <Button
               handlePress={launchScanner}
@@ -184,18 +167,11 @@ export default function Index() {
               color="brand"
             />
             <Button
-              handlePress={hasChecked ? clearState : handlePress}
+              handlePress={hasChecked ? clearState : validateId}
               label={hasChecked ? "Clear" : "Validate"}
               color="brand"
             />
           </ThemedView>
-
-          {/* <Button
-            handlePress={clearState}
-            label="Clear"
-            color="black"
-            style={{ position: "absolute", bottom: 0, height: 50 }}
-          /> */}
         </ThemedView>
       )}
     </SafeAreaView>
@@ -213,6 +189,14 @@ const styles = StyleSheet.create({
   },
   heading: { fontSize: 35 },
   resultContainer: { width: "100%", alignItems: "center", gap: 10 },
+  informationContainer: {
+    gap: 30,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    aspectRatio: 1,
+  },
   cameraContainer: { width: "100%", aspectRatio: 1, borderRadius: 12 },
   buttonContainer: {
     width: "100%",

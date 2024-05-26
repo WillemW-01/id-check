@@ -1,6 +1,6 @@
 import { CameraView } from "expo-camera";
 
-export function Scanner() {
+export function useScanner() {
   async function getCode(listeningFunction: Function) {
     CameraView.onModernBarcodeScanned((result) => {
       listeningFunction(result);
