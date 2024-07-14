@@ -3,36 +3,40 @@
 This app scans a South African ID card to compute the checksum and its validity.
 Made with Expo.
 
+## Demo
+
+https://github.com/user-attachments/assets/fb90a506-3302-49ef-817f-ef3257457e22
+
 ## Installation
 
-1. Clone the project
+These instructions will get you a copy of the project up and running on your local machine
+for development and testing purposes.
 
-   ```bash
-   $ git clone git@github.com:WillemW-01/id-check.git
-   ```
+1. To run this project, you'll need to have `Node.js` and `npm` installed on your machine.
+   You can download Node.js and npm from the official website: https://nodejs.org
 
-1. Install dependencies
+2. Clone the repository
 
-   ```bash
-   npm install
-   ```
+```bash
+$ git clone git@github.com:WillemW-01/id-check.git
+```
 
-1. Start the app
+3. Install dependencies
 
-   ```bash
-    npx expo start --tunnel
-   ```
+```bash
+$ cd id-check
+$ npm install
+```
 
-1. If using Expo Go, open it on your device and open the development server,
-   otherwise run the app on your preferred method (see below).
+4. Start the development server (use one of the two).
 
-There are different ways of using an app made by Expo:
+```bash
+$ npx expo start
+$ npx expo start --tunnel
+```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app
-  development with Expo
+5. If using Expo Go, open Expo Go and select the running dev server. You are ready to use
+   the application.
 
 ## Background
 
